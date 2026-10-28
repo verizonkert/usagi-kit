@@ -1,0 +1,278 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.draken.usagi",
+    "module": "usagi-kit",
+    "version": "1.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.1.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "releaseVariantReleaseApiPublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.github.UsagiApp",
+          "module": "Tsuki",
+          "version": {
+            "requires": "1.0.5"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.10"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-core",
+          "version": {
+            "requires": "1.10.2"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-android",
+          "version": {
+            "requires": "1.10.2"
+          }
+        },
+        {
+          "group": "com.squareup.okhttp3",
+          "module": "okhttp",
+          "version": {
+            "requires": "5.3.2"
+          }
+        },
+        {
+          "group": "com.squareup.okhttp3",
+          "module": "okhttp-dnsoverhttps",
+          "version": {
+            "requires": "5.3.2"
+          }
+        },
+        {
+          "group": "com.squareup.okhttp3",
+          "module": "okhttp-brotli",
+          "version": {
+            "requires": "5.3.2"
+          }
+        },
+        {
+          "group": "com.squareup.okio",
+          "module": "okio",
+          "version": {
+            "requires": "3.17.0"
+          }
+        },
+        {
+          "group": "org.jsoup",
+          "module": "jsoup",
+          "version": {
+            "requires": "1.17.2"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-serialization-json",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-serialization-json-okio",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-serialization-protobuf",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "com.github.null2264.injekt",
+          "module": "injekt-core",
+          "version": {
+            "requires": "4135455a2a"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "usagi-kit-1.0.0.aar",
+          "url": "usagi-kit-1.0.0.aar",
+          "size": 65596,
+          "sha512": "d27ec0f4aa7b9ee465942b3d94c4be7d430607562601781750cb5db879bc9929402a98f48c4a8de91a8db666a4075e1e64d903f1be99c20b588cab873453e4fa",
+          "sha256": "40897c839d0d8e4a7ab12d08a54bc4a4892dd523c450d5f2ee522f7bd15fb2eb",
+          "sha1": "05801d4b6777bc7c4531cc2cdeaa8026c7dfa42d",
+          "md5": "a71eb8b59a1f670fbe6c737bd132ac64"
+        }
+      ]
+    },
+    {
+      "name": "releaseVariantReleaseRuntimePublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "androidx.core",
+          "module": "core-ktx",
+          "version": {
+            "requires": "1.17.0"
+          }
+        },
+        {
+          "group": "androidx.preference",
+          "module": "preference-ktx",
+          "version": {
+            "requires": "1.2.1"
+          }
+        },
+        {
+          "group": "com.github.UsagiApp",
+          "module": "Tsuki",
+          "version": {
+            "requires": "1.0.5"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.10"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-core",
+          "version": {
+            "requires": "1.10.2"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-android",
+          "version": {
+            "requires": "1.10.2"
+          }
+        },
+        {
+          "group": "com.squareup.okhttp3",
+          "module": "okhttp",
+          "version": {
+            "requires": "5.3.2"
+          }
+        },
+        {
+          "group": "com.squareup.okhttp3",
+          "module": "okhttp-dnsoverhttps",
+          "version": {
+            "requires": "5.3.2"
+          }
+        },
+        {
+          "group": "com.squareup.okhttp3",
+          "module": "okhttp-brotli",
+          "version": {
+            "requires": "5.3.2"
+          }
+        },
+        {
+          "group": "com.squareup.okio",
+          "module": "okio",
+          "version": {
+            "requires": "3.17.0"
+          }
+        },
+        {
+          "group": "org.jsoup",
+          "module": "jsoup",
+          "version": {
+            "requires": "1.17.2"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-serialization-json",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-serialization-json-okio",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-serialization-protobuf",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "com.github.null2264.injekt",
+          "module": "injekt-core",
+          "version": {
+            "requires": "4135455a2a"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "usagi-kit-1.0.0.aar",
+          "url": "usagi-kit-1.0.0.aar",
+          "size": 65596,
+          "sha512": "d27ec0f4aa7b9ee465942b3d94c4be7d430607562601781750cb5db879bc9929402a98f48c4a8de91a8db666a4075e1e64d903f1be99c20b588cab873453e4fa",
+          "sha256": "40897c839d0d8e4a7ab12d08a54bc4a4892dd523c450d5f2ee522f7bd15fb2eb",
+          "sha1": "05801d4b6777bc7c4531cc2cdeaa8026c7dfa42d",
+          "md5": "a71eb8b59a1f670fbe6c737bd132ac64"
+        }
+      ]
+    },
+    {
+      "name": "releaseVariantReleaseSourcePublication",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "usagi-kit-1.0.0-sources.jar",
+          "url": "usagi-kit-1.0.0-sources.jar",
+          "size": 9829,
+          "sha512": "c610be7ab53206377d03732e9fd8c491ebfdeb1f6809712798195889004e42d488b7c71c434fb635b012feec078e894443bbe38934a37b433d8cbf56e86b9516",
+          "sha256": "63107ff46acdd07a2137761a193d35c2a099fbb45454290fbd395d17b52d4286",
+          "sha1": "79dc6aa141cccf8ffa0efca874da488cd3db3caa",
+          "md5": "86d74c3da2ab9fc5b9054efc2a552cee"
+        }
+      ]
+    }
+  ]
+}
