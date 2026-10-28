@@ -1,0 +1,85 @@
+name: Deploy Maven Repo to GitHub Pages & GitHub Releases
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    name: Build, Publish Repo & Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Extract Tag Version
+        id: get_version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          else
+            VERSION="1.0.0"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Publish Maven artifacts to local build repo
+        run: ./gradlew :usagi-kit:publishReleasePublicationToLocalRepoRepository -Pgpr.version=${{ steps.get_version.outputs.VERSION }}
+
+      - name: Checkout or Create gh-pages branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git clone --branch gh-pages "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages-dir || mkdir gh-pages-dir
+          
+          cd gh-pages-dir
+          if [ ! -d ".git" ]; then
+            git init
+            git checkout -b gh-pages
+            git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          fi
+          
+          mkdir -p maven
+          cp -rf ../usagi-kit/build/repo/* maven/
+          
+          git add maven
+          if git diff --staged --quiet; then
+            echo "No changes in maven artifacts"
+          else
+            git commit -m "Publish version ${{ steps.get_version.outputs.VERSION }} to Maven repository"
+            git push origin gh-pages
+          fi
+
+      - name: Create GitHub Release with AAR asset
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: usagi-kit/build/outputs/aar/*.aar
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
