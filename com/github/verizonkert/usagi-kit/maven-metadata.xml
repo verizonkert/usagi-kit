@@ -3,11 +3,11 @@
   <groupId>com.github.verizonkert</groupId>
   <artifactId>usagi-kit</artifactId>
   <versioning>
-    <latest>main</latest>
-    <release>main</release>
+    <latest>0.0.1</latest>
+    <release>0.0.1</release>
     <versions>
-      <version>main</version>
+      <version>0.0.1</version>
     </versions>
-    <lastUpdated>20261103134003</lastUpdated>
+    <lastUpdated>20261103153400</lastUpdated>
   </versioning>
 </metadata>
