@@ -1,5 +1,16 @@
 package tsuki.util.json
 
+/**
+ * Decodes JSON-encoded escape sequences in this string into their raw character representations.
+ *
+ * Supported escape sequences:
+ * - `\\`, `\/`, `\"`, `\'`
+ * - `\n`, `\r`, `\t`, `\b`
+ * - Unicode escapes: `\uXXXX` (where XXXX is a 4-digit hexadecimal number)
+ *
+ * @return The unescaped plain string.
+ * @throws IllegalArgumentException if an invalid escape sequence or incomplete unicode sequence is encountered.
+ */
 public fun String.unescapeJson(): String {
 	val builder = StringBuilder()
 	var i = 0
@@ -17,14 +28,14 @@ public fun String.unescapeJson(): String {
 				't' -> builder.append('\t')
 				'b' -> builder.append('\b')
 				'u' -> {
-					val hex = StringBuilder(4)
 					require(i + 4 <= length) { "Not enough unicode digits!" }
-					for (x in substring(i, i + 4)) {
-						require(x.isLetterOrDigit()) { "Bad character in unicode escape" }
-						hex.append(x.lowercase())
+					var code = 0
+					for (offset in 0 until 4) {
+						val digit = Character.digit(this[i + offset], 16)
+						require(digit != -1) { "Bad character in unicode escape" }
+						code = (code shl 4) or digit
 					}
 					i += 4 // consume those four digits.
-					val code = hex.toString().toInt(16)
 					builder.append(code.toChar())
 				}
 

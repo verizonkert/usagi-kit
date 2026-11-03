@@ -1,45 +1,30 @@
 package tsuki.model
 
 import tsuki.InternalParsersApi
-import java.util.*
+import java.util.Locale
 
+/**
+ * Describes the concrete set of available filter options and values supported by a manga source.
+ *
+ * Returned by parsers to populate filter dropdowns and tag selector chips in the client application.
+ *
+ * For optimal runtime performance and memory efficiency, prefer using [java.util.EnumSet]
+ * when defining sets with more than one enum item (e.g. states, ratings, types, demographics).
+ *
+ * @property availableTags All genre/content tags available for this source.
+ * @property availableStates Supported [MangaState] status filters (e.g. Ongoing, Finished).
+ * @property availableContentRating Supported [ContentRating] maturity filters (e.g. Safe, Suggestive, Adult).
+ * @property availableContentTypes Supported [ContentType] media format filters (e.g. Manga, Manhwa, Novel).
+ * @property availableDemographics Supported [Demographic] audience filters (e.g. Shounen, Seinen).
+ * @property availableLocales Supported language/translation locales for multilingual sources.
+ */
 public data class MangaListFilterOptions @InternalParsersApi constructor(
-
-	/**
-	 * Available tags (genres)
-	 */
 	public val availableTags: Set<MangaTag> = emptySet(),
-
-	/**
-	 * Supported [MangaState] variants for filtering. May be empty.
-	 *
-	 * For better performance use [EnumSet] for more than one item.
-	 */
 	public val availableStates: Set<MangaState> = emptySet(),
-
-	/**
-	 * Supported [ContentRating] variants for filtering. May be empty.
-	 *
-	 * For better performance use [EnumSet] for more than one item.
-	 */
 	public val availableContentRating: Set<ContentRating> = emptySet(),
-
-	/**
-	 * Supported [ContentType] variants for filtering. May be empty.
-	 *
-	 * For better performance use [EnumSet] for more than one item.
-	 */
 	public val availableContentTypes: Set<ContentType> = emptySet(),
-
-	/**
-	 * Supported [Demographic] variants for filtering. May be empty.
-	 *
-	 * For better performance use [EnumSet] for more than one item.
-	 */
 	public val availableDemographics: Set<Demographic> = emptySet(),
-
-	/**
-	 * Supported content locales for multilingual sources
-	 */
 	public val availableLocales: Set<Locale> = emptySet(),
 )
+
+

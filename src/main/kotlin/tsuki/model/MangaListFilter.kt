@@ -1,7 +1,28 @@
 package tsuki.model
 
-import java.util.*
+import java.util.Locale
 
+/**
+ * Modern unified filter and search criteria model used when querying manga parsers.
+ *
+ * Replaces the legacy query model and encapsulates keyword searches, genre inclusions/exclusions,
+ * publication states, languages, content ratings, types, demographics, release years, and authors.
+ *
+ * @property query Free-form title search keyword string, or `null`.
+ * @property tags Set of genre/theme tags that matching manga must possess.
+ * @property tagsExclude Set of genre/theme tags that matching manga must NOT possess.
+ * @property locale Target translation or content language filter, or `null`.
+ * @property originalLocale Original country or publishing language filter, or `null`.
+ * @property states Set of publication states to match ([MangaState]).
+ * @property contentRating Set of allowed content maturity ratings ([ContentRating]).
+ * @property types Set of allowed media formats/types ([ContentType]).
+ * @property demographics Set of target demographics ([Demographic]).
+ * @property year Exact publication year to match, or [YEAR_UNKNOWN].
+ * @property yearFrom Starting publication year (inclusive) for year ranges, or [YEAR_UNKNOWN].
+ * @property yearTo Ending publication year (inclusive) for year ranges, or [YEAR_UNKNOWN].
+ * @property author Author or artist name search query, or `null`.
+ * @property rawFilter Generic untyped filter payload used by specialized extensions, or `null`.
+ */
 public data class MangaListFilter(
 	@JvmField val query: String? = null,
 	@JvmField val tags: Set<MangaTag> = emptySet(),
@@ -33,14 +54,24 @@ public data class MangaListFilter(
 		author.isNullOrEmpty() &&
 		rawFilter == null
 
+	/**
+	 * Returns `true` if no filter parameters (including query text) have been specified.
+	 */
 	public fun isEmpty(): Boolean = isNonSearchOptionsEmpty() && query.isNullOrEmpty()
 
+	/**
+	 * Returns `true` if at least one filter criterion or search query is specified.
+	 */
 	public fun isNotEmpty(): Boolean = !isEmpty()
 
+	/**
+	 * Returns `true` if any filter criteria other than text search [query] are active.
+	 */
 	public fun hasNonSearchOptions(): Boolean = !isNonSearchOptionsEmpty()
 
 	public companion object {
 
+		/** Empty filter singleton instance with default values. */
 		@JvmStatic
 		public val EMPTY: MangaListFilter = MangaListFilter()
 	}

@@ -2,55 +2,30 @@ package tsuki.model
 
 import tsuki.InternalParsersApi
 
+/**
+ * Declares the search and filtering capabilities supported by a manga parser.
+ *
+ * Applications query this declaration to dynamically configure UI filters, disabling
+ * unsupported controls (e.g. tag exclusion, year ranges, or language selectors).
+ *
+ * @property isMultipleTagsSupported Whether the parser supports filtering by more than one genre/tag simultaneously.
+ * @property isTagsExclusionSupported Whether the parser supports tag exclusion ([MangaListFilter.tagsExclude]).
+ * @property isSearchSupported Whether the parser supports text keyword searching ([MangaListFilter.query]).
+ * @property isSearchWithFiltersSupported Whether keyword search can be combined with other filter parameters.
+ * @property isYearSupported Whether filtering by a single release year is supported ([MangaListFilter.year]).
+ * @property isYearRangeSupported Whether filtering by release year range is supported ([MangaListFilter.yearFrom], [MangaListFilter.yearTo]).
+ * @property isOriginalLocaleSupported Whether filtering by original publication language is supported ([MangaListFilter.originalLocale]).
+ * @property isAuthorSearchSupported Whether searching or filtering by author/artist name is supported ([MangaListFilter.author]).
+ */
 public data class MangaListFilterCapabilities @InternalParsersApi constructor(
-
-	/**
-	 * Whether parser supports filtering by more than one tag
-	 * @see [MangaListFilter.tags]
-	 * @see [MangaListFilterOptions.availableTags]
-	 */
 	val isMultipleTagsSupported: Boolean = false,
-
-	/**
-	 * Whether parser supports tagsExclude field in filter
-	 * @see [MangaListFilter.tagsExclude]
-	 * @see [MangaListFilterOptions.availableTags]
-	 */
 	val isTagsExclusionSupported: Boolean = false,
-
-	/**
-	 * Whether parser supports searching by string query
-	 * @see [MangaListFilter.query]
-	 */
 	val isSearchSupported: Boolean = false,
-
-	/**
-	 * Whether parser supports searching by string query combined within other filters
-	 */
 	val isSearchWithFiltersSupported: Boolean = false,
-
-	/**
-	 * Whether parser supports searching/filtering by year
-	 * @see [MangaListFilter.year]
-	 */
 	val isYearSupported: Boolean = false,
-
-	/**
-	 * Whether parser supports searching by year range
-	 * @see [MangaListFilter.yearFrom] and [MangaListFilter.yearTo]
-	 */
 	val isYearRangeSupported: Boolean = false,
-
-	/**
-	 * Whether parser supports searching Original Languages
-	 * @see [MangaListFilter.originalLocale]
-	 * @see [MangaListFilterOptions.availableLocales]
-	 */
 	val isOriginalLocaleSupported: Boolean = false,
-
-	/**
-	 * Whether parser supports searching by author name
-	 * @see [MangaListFilter.author]
-	 */
 	val isAuthorSearchSupported: Boolean = false,
 )
+
+

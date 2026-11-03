@@ -2,6 +2,15 @@ package tsuki.util.json
 
 import org.json.JSONArray
 
+/**
+ * An allocation-free, read-only [List] view over a [JSONArray] that casts each element to type [T] on access.
+ *
+ * Avoids copying JSON elements into an intermediate JVM collection when iterating or inspecting array contents.
+ *
+ * @param T The expected target element type.
+ * @param jsonArray The underlying JSON array.
+ * @param typeClass The Java [Class] used for type checking and casting.
+ */
 public class JSONArrayTypedListWrapper<T : Any>(
 	private val jsonArray: JSONArray,
 	private val typeClass: Class<T>,
@@ -28,8 +37,8 @@ public class JSONArrayTypedListWrapper<T : Any>(
 
 	override fun lastIndexOf(element: T): Int {
 		val total = jsonArray.length()
-		repeat(total) { i ->
-			if (jsonArray[total - i - 1] == element) {
+		for (i in total - 1 downTo 0) {
+			if (jsonArray[i] == element) {
 				return i
 			}
 		}
@@ -41,8 +50,8 @@ public class JSONArrayTypedListWrapper<T : Any>(
 	override fun listIterator(index: Int): ListIterator<T> = JSONArrayTypedIterator(jsonArray, typeClass, index)
 
 	override fun subList(fromIndex: Int, toIndex: Int): List<T> {
-		val result = ArrayList<T>(toIndex - fromIndex + 1)
-		for (i in fromIndex..toIndex) {
+		val result = ArrayList<T>((toIndex - fromIndex).coerceAtLeast(0))
+		for (i in fromIndex until toIndex) {
 			result.add(get(i))
 		}
 		return result

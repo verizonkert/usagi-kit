@@ -1,8 +1,9 @@
 package tsuki
 
 import org.junit.jupiter.params.provider.EnumSource
-import tsuki.model.MangaParserSource
 
-// Change 'names' to test specified parsers
-@EnumSource(MangaParserSource::class, names = [], mode = EnumSource.Mode.INCLUDE)
+/**
+ * Parameterized source provider for parser tests using [TestMangaSource].
+ */
+@EnumSource(TestMangaSource::class, names = ["MOCK"], mode = EnumSource.Mode.INCLUDE)
 internal annotation class MangaSources

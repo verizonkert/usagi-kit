@@ -9,16 +9,30 @@ import tsuki.model.YEAR_UNKNOWN
 import tsuki.model.search.MangaSearchQuery
 import tsuki.model.search.MangaSearchQueryCapabilities
 import tsuki.model.search.QueryCriteria
-import tsuki.model.search.QueryCriteria.*
+import tsuki.model.search.QueryCriteria.Exclude
+import tsuki.model.search.QueryCriteria.Include
+import tsuki.model.search.QueryCriteria.Match
+import tsuki.model.search.QueryCriteria.Range
 import tsuki.model.search.SearchCapability
-import tsuki.model.search.SearchableField.*
+import tsuki.model.search.SearchableField.AUTHOR
+import tsuki.model.search.SearchableField.CONTENT_RATING
+import tsuki.model.search.SearchableField.CONTENT_TYPE
+import tsuki.model.search.SearchableField.DEMOGRAPHIC
+import tsuki.model.search.SearchableField.LANGUAGE
+import tsuki.model.search.SearchableField.ORIGINAL_LANGUAGE
+import tsuki.model.search.SearchableField.PUBLICATION_YEAR
+import tsuki.model.search.SearchableField.STATE
+import tsuki.model.search.SearchableField.TAG
+import tsuki.model.search.SearchableField.TITLE_NAME
 
 /**
- * Converts a [MangaListFilter] into a [MangaSearchQuery].
+ * Converts a modern [MangaListFilter] into a legacy [MangaSearchQuery].
  *
- * This function iterates through the filter attributes in [MangaListFilter] and creates corresponding
- * search criteria in a [MangaSearchQuery.Builder].
+ * This function translates filter attributes in [MangaListFilter] into corresponding
+ * search criteria in a [MangaSearchQuery.Builder] for backward compatibility with older parsers.
  *
+ * @param offset Starting pagination index.
+ * @param sortOrder Desired sort ordering strategy.
  * @param filter The [MangaListFilter] to convert.
  * @return A [MangaSearchQuery] constructed based on the given [filter].
  */
@@ -51,29 +65,17 @@ public fun convertToMangaSearchQuery(offset: Int, sortOrder: SortOrder, filter: 
 }
 
 /**
- * Converts a {@link MangaSearchQuery} into a {@link MangaListFilter}.
- * <p>
- * This method iterates through the search criteria defined in the provided {@code searchQuery}
- * and applies them to a {@link MangaListFilter.Builder}. The criteria are processed based on
- * their types, such as inclusion, exclusion, equality checks, range filtering, and pattern matching.
- * </p>
- * <p>
- * Supported criteria:
- * <ul>
- *     <li>{@link QueryCriteria.Include} - Adds tags, states, content types, content ratings, demographics, and languages.</li>
- *     <li>{@link QueryCriteria.Exclude} - Excludes tags.</li>
- *     <li>{@link QueryCriteria.Equals} - Sets specific values like publication year.</li>
- *     <li>{@link QueryCriteria.Between} - Sets a range of values like publication year range.</li>
- *     <li>{@link QueryCriteria.Match} - Adds a search pattern for the title name.</li>
- * </ul>
- * </p>
- * <p>
- * If an unsupported field is encountered, an {@link UnsupportedOperationException} is thrown.
- * </p>
+ * Converts a legacy [MangaSearchQuery] into a modern [MangaListFilter].
  *
- * @param searchQuery The {@link MangaSearchQuery} to convert.
- * @return A {@link MangaListFilter} constructed based on the given {@code searchQuery}.
- * @throws UnsupportedOperationException If the search criteria contain unsupported fields.
+ * Supported criteria:
+ * - [QueryCriteria.Include] - Adds tags, states, content types, content ratings, demographics, and languages.
+ * - [QueryCriteria.Exclude] - Excludes tags.
+ * - [QueryCriteria.Range] - Sets a range of values like publication year range.
+ * - [QueryCriteria.Match] - Adds search pattern for title name or exact publication year.
+ *
+ * @param searchQuery The legacy search query to convert.
+ * @return A [MangaListFilter] populated with criteria from [searchQuery].
+ * @throws IllegalArgumentException if an unsupported search field is encountered.
  */
 public fun convertToMangaListFilter(searchQuery: MangaSearchQuery): MangaListFilter {
 	return MangaListFilter.Builder().apply {
@@ -88,7 +90,10 @@ public fun convertToMangaListFilter(searchQuery: MangaSearchQuery): MangaListFil
 	}.build()
 }
 
-public fun MangaSearchQueryCapabilities.toMangaListFilterCapabilities() = MangaListFilterCapabilities(
+/**
+ * Maps legacy [MangaSearchQueryCapabilities] to modern [MangaListFilterCapabilities].
+ */
+public fun MangaSearchQueryCapabilities.toMangaListFilterCapabilities(): MangaListFilterCapabilities = MangaListFilterCapabilities(
 	isMultipleTagsSupported = capabilities.any { x -> x.field == TAG && x.isMultiple },
 	isTagsExclusionSupported = capabilities.any { x -> x.field == TAG && x.criteriaTypes.contains(Exclude::class) },
 	isSearchSupported = capabilities.any { x -> x.field == TITLE_NAME },
@@ -99,6 +104,9 @@ public fun MangaSearchQueryCapabilities.toMangaListFilterCapabilities() = MangaL
 	isAuthorSearchSupported = capabilities.any { x -> x.field == AUTHOR },
 )
 
+/**
+ * Maps modern [MangaListFilterCapabilities] back to legacy [MangaSearchQueryCapabilities].
+ */
 public fun MangaListFilterCapabilities.toMangaSearchQueryCapabilities(): MangaSearchQueryCapabilities =
 	MangaSearchQueryCapabilities(
 		capabilities = setOfNotNull(
@@ -178,6 +186,9 @@ public fun MangaListFilterCapabilities.toMangaSearchQueryCapabilities(): MangaSe
 		),
 	)
 
+/**
+ * Dispatches an [Include] criterion and sets corresponding tags, states, types, demographics, or locales on [builder].
+ */
 private fun handleInclude(builder: MangaListFilter.Builder, criterion: Include<*>) {
 	val type = criterion.field.type
 
@@ -193,6 +204,9 @@ private fun handleInclude(builder: MangaListFilter.Builder, criterion: Include<*
 	}
 }
 
+/**
+ * Dispatches an [Exclude] criterion and configures excluded tags on [builder].
+ */
 private fun handleExclude(builder: MangaListFilter.Builder, criterion: Exclude<*>) {
 	val type = criterion.field.type
 
@@ -202,6 +216,9 @@ private fun handleExclude(builder: MangaListFilter.Builder, criterion: Exclude<*
 	}
 }
 
+/**
+ * Dispatches a [Range] criterion (e.g. publication year range) and sets bounds on [builder].
+ */
 private fun handleBetween(builder: MangaListFilter.Builder, criterion: Range<*>) {
 	val type = criterion.field.type
 
@@ -215,6 +232,9 @@ private fun handleBetween(builder: MangaListFilter.Builder, criterion: Range<*>)
 	}
 }
 
+/**
+ * Dispatches a [Match] criterion (e.g. title text query or exact publication year) on [builder].
+ */
 private fun handleMatch(builder: MangaListFilter.Builder, criterion: Match<*>) {
 	val type = criterion.field.type
 
@@ -225,26 +245,51 @@ private fun handleMatch(builder: MangaListFilter.Builder, criterion: Match<*>) {
 	}
 }
 
+/**
+ * Filters and casts criterion values matching the expected runtime [type].
+ */
 @Suppress("UNCHECKED_CAST")
 private fun <T> filterValues(criterion: Include<*>, type: Class<*>): List<T> {
-	return criterion.values.filter { type.isInstance(it) } as List<T>
+	val values = criterion.values
+	if (values.isEmpty()) return emptyList()
+	return values.filter { type.isInstance(it) } as List<T>
 }
 
+/**
+ * Filters and casts excluded criterion values matching the expected runtime [type].
+ */
 @Suppress("UNCHECKED_CAST")
 private fun <T> filterValues(criterion: Exclude<*>, type: Class<*>): List<T> {
-	return criterion.values.filter { type.isInstance(it) } as List<T>
+	val values = criterion.values
+	if (values.isEmpty()) return emptyList()
+	return values.filter { type.isInstance(it) } as List<T>
 }
 
+/**
+ * Extracts and casts the first value from an [Include] criterion matching the expected [type].
+ */
 @Suppress("UNCHECKED_CAST")
 private fun <T> getFirstValue(criterion: Include<*>, type: Class<*>): T? {
 	return criterion.values.firstOrNull { type.isInstance(it) } as? T
 }
 
+/**
+ * Coerces [value] to type [T] if it matches [type] or common boxed numeric/boolean primitives, or returns [default].
+ */
 @Suppress("UNCHECKED_CAST")
 private fun <T> getValue(value: Any?, type: Class<*>, default: T): T {
-	val isCompatibleIntType = (type == Int::class.java && Integer::class.isInstance(value))
+	if (value == null) return default
+	val isCompatible = type.isInstance(value)
+		|| (type == Int::class.java && value is Int)
+		|| (type == Long::class.java && value is Long)
+		|| (type == Float::class.java && value is Float)
+		|| (type == Double::class.java && value is Double)
+		|| (type == Boolean::class.java && value is Boolean)
 
-	return if (type.isInstance(value) || isCompatibleIntType) value as T else default
+	return if (isCompatible) value as T else default
 }
 
+/**
+ * Returns `true` if [year] is a valid known publication year.
+ */
 private fun validateYear(year: Int) = year != YEAR_UNKNOWN

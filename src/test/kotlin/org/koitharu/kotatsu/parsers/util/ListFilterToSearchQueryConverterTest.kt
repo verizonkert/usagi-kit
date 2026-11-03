@@ -71,7 +71,7 @@ class ListFilterToSearchQueryConverterTest {
         return MangaTag(
             key = "${name}Key",
             title = name,
-            source = MangaParserSource.MANGADEX,
+            source = tsuki.TestMangaSource.MANGADEX,
         )
     }
 }

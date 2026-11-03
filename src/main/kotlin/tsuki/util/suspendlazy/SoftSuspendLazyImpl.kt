@@ -5,9 +5,16 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.lang.ref.SoftReference
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
- * Like a [SuspendLazy] but with [SoftReference] under the hood
+ * Memory-sensitive implementation of [SuspendLazy] backed by a [SoftReference].
+ *
+ * The computed value is retained in memory as long as memory is sufficient. Under GC pressure,
+ * the JVM may clear the soft reference, in which case a subsequent [get] will re-run the [initializer].
+ *
+ * @param coroutineContext Optional context to run the initializer in.
+ * @param initializer The suspending computation lambda.
  */
 public class SoftSuspendLazyImpl<T : Any>(
 	private val coroutineContext: CoroutineContext,
@@ -15,6 +22,7 @@ public class SoftSuspendLazyImpl<T : Any>(
 ) : SuspendLazy<T> {
 
 	private val mutex: Mutex = Mutex()
+	@Volatile
 	private var cachedValue: SoftReference<T>? = null
 
 	override val isInitialized: Boolean
@@ -29,8 +37,12 @@ public class SoftSuspendLazyImpl<T : Any>(
 			cachedValue?.get()?.let {
 				return it
 			}
-			val result = withContext(coroutineContext) {
+			val result = if (coroutineContext === EmptyCoroutineContext) {
 				initializer()
+			} else {
+				withContext(coroutineContext) {
+					initializer()
+				}
 			}
 			cachedValue = SoftReference(result)
 			result

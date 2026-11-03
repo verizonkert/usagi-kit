@@ -2,6 +2,7 @@ package tsuki.util
 
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import tsuki.network.RateLimitHelper
 import tsuki.exception.TooManyRequestExceptions
@@ -40,7 +41,11 @@ public fun OkHttpClient.Builder.rateLimit(
 	url: String,
 	permits: Int,
 	period: Duration = 1.seconds
-): OkHttpClient.Builder = rateLimit(url.toHttpUrl(), permits, period)
+): OkHttpClient.Builder {
+	val httpUrl = url.toHttpUrlOrNull()
+		?: (if (url.startsWith("http://") || url.startsWith("https://")) url else "https://$url").toHttpUrl()
+	return rateLimit(httpUrl, permits, period)
+}
 
 /**
  * An OkHttp interceptor that handles given url host's rate limiting.

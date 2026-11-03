@@ -2,15 +2,15 @@ package tsuki.util
 
 import org.junit.jupiter.api.Test
 import tsuki.MangaLoaderContextMock
-import tsuki.model.MangaParserSource
-import tsuki.newParser
+import tsuki.TestMangaSource
 import java.io.File
 
 class IntentFilterGenerator {
 
     @Test
     fun generateIntentFilter() {
-        val output = File("out/test/resources/intent-filter.xml")
+        val output = File("build/reports/intent-filter.xml")
+        output.parentFile?.mkdirs()
         output.printWriter(Charsets.UTF_8).use { writer ->
             writer.appendLine("<intent-filter android:autoVerify=\"false\">")
             writer.appendTab().appendLine("<action android:name=\"android.intent.action.VIEW\" />")
@@ -21,8 +21,8 @@ class IntentFilterGenerator {
             writer.appendTab().appendLine("<data android:scheme=\"http\" />")
             writer.appendTab().appendLine("<data android:scheme=\"https\" />")
             writer.appendLine()
-            for (source in MangaParserSource.entries) {
-                val parser = source.newParser(MangaLoaderContextMock)
+            for (source in TestMangaSource.entries) {
+                val parser = MangaLoaderContextMock.newParserInstance(source)
                 parser.configKeyDomain.presetValues.forEach { domain ->
                     writer.appendTab().append("<data android:host=\"").append(domain).appendLine("\" />")
                 }
@@ -30,7 +30,7 @@ class IntentFilterGenerator {
             writer.appendLine()
             writer.appendLine("</intent-filter>")
         }
-        println(output.absolutePath)
+        println("Generated intent filter at: ${output.absolutePath}")
     }
 
     private fun Appendable.appendTab() = append('\t')

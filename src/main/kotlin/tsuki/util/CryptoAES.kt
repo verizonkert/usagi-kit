@@ -12,7 +12,12 @@ private const val AES = "AES"
 private const val KDF_DIGEST = "MD5"
 
 /**
- * Conforming with CryptoJS AES method
+ * AES decryption utility conforming with the JavaScript `CryptoJS.AES` standard method.
+ *
+ * Employs OpenSSL's `EVP_BytesToKey` key derivation function (KDF) to decrypt salted payloads
+ * commonly encountered on manga websites protecting encrypted chapter image URLs.
+ *
+ * @property context The loader context providing Base64 decoding services.
  */
 @InternalParsersApi
 public class CryptoAES(
@@ -20,16 +25,23 @@ public class CryptoAES(
 ) {
 
 	/**
-	 * Decrypt using CryptoJS defaults compatible method.
-	 * Uses KDF equivalent to OpenSSL's EVP_BytesToKey function
+	 * Decrypts a CryptoJS-compatible base64 ciphertext using a passphrase string.
 	 *
-	 * http://stackoverflow.com/a/29152379/4405051
-	 * @param cipherText base64 encoded ciphertext
-	 * @param password passphrase
+	 * Extracts the 8-byte salt from the payload, derives key and IV via MD5-based KDF,
+	 * and decrypts the payload with AES-CBC.
+	 *
+	 * @param cipherText Base64-encoded encrypted payload with standard "Salted__" header.
+	 * @param password Passphrase string used during encryption.
+	 * @return Decrypted UTF-8 plain text string.
+	 * @throws IllegalArgumentException if the ciphertext payload is smaller than 16 bytes.
+	 * @throws Exception if cryptographic decryption fails.
 	 */
 	@Throws(Exception::class)
 	public fun decrypt(cipherText: String, password: String): String {
 		val ctBytes = context.decodeBase64(cipherText)
+		if (ctBytes.size < 16) {
+			throw IllegalArgumentException("Invalid CryptoJS payload: length is less than 16 bytes")
+		}
 		val saltBytes = ctBytes.copyOfRange(8, 16)
 		val cipherTextBytes = ctBytes.copyOfRange(16, ctBytes.size)
 		val md5: MessageDigest = MessageDigest.getInstance(KDF_DIGEST)
@@ -42,11 +54,13 @@ public class CryptoAES(
 	}
 
 	/**
-	 * Decrypt using CryptoJS defaults compatible method.
+	 * Decrypts a base64-encoded ciphertext using raw [keyBytes] and [ivBytes].
 	 *
-	 * @param cipherText base64 encoded ciphertext
-	 * @param keyBytes key as a bytearray
-	 * @param ivBytes iv as a bytearray
+	 * @param cipherText Base64-encoded encrypted ciphertext without salt header.
+	 * @param keyBytes Raw AES secret key bytes.
+	 * @param ivBytes Initialization Vector bytes.
+	 * @return Decrypted UTF-8 plain text string.
+	 * @throws Exception if cryptographic decryption fails.
 	 */
 	@Throws(Exception::class)
 	public fun decrypt(cipherText: String, keyBytes: ByteArray, ivBytes: ByteArray): String {
@@ -55,35 +69,35 @@ public class CryptoAES(
 	}
 
 	/**
-	 * Decrypt using CryptoJS defaults compatible method.
-	 *
-	 * @param cipherTextBytes encrypted text as a bytearray
-	 * @param keyBytes key as a bytearray
-	 * @param ivBytes iv as a bytearray
+	 * Internal cipher execution routine for AES-CBC with PKCS7/PKCS5 padding.
 	 */
 	@Throws(Exception::class)
 	private fun decryptAES(cipherTextBytes: ByteArray, keyBytes: ByteArray, ivBytes: ByteArray): String {
-		val cipher = Cipher.getInstance(HASH_CIPHER)
+		val cipher = try {
+			Cipher.getInstance(HASH_CIPHER)
+		} catch (_: Exception) {
+			Cipher.getInstance("AES/CBC/PKCS5PADDING")
+		}
 		val keyS = SecretKeySpec(keyBytes, AES)
 		cipher.init(Cipher.DECRYPT_MODE, keyS, IvParameterSpec(ivBytes))
 		return cipher.doFinal(cipherTextBytes).toString(Charsets.UTF_8)
 	}
 
 	/**
-	 * Generates a key and an initialization vector (IV) with the given salt and password.
+	 * Generates a key and an initialization vector (IV) from the given salt and password.
 	 *
-	 * https://stackoverflow.com/a/41434590
+	 * Reference: https://stackoverflow.com/a/41434590
 	 * This method is equivalent to OpenSSL's EVP_BytesToKey function
 	 * (see https://github.com/openssl/openssl/blob/master/crypto/evp/evp_key.c).
 	 * By default, OpenSSL uses a single iteration, MD5 as the algorithm and UTF-8 encoded password data.
 	 *
-	 * @param keyLength the length of the generated key (in bytes)
-	 * @param ivLength the length of the generated IV (in bytes)
-	 * @param iterations the number of digestion rounds
-	 * @param salt the salt data (8 bytes of data or `null`)
-	 * @param password the password data (optional)
-	 * @param md the message digest algorithm to use
-	 * @return an two-element array with the generated key and IV
+	 * @param keyLength Desired key length in bytes (e.g. 32 for AES-256).
+	 * @param ivLength Desired IV length in bytes (16 for standard AES block size).
+	 * @param iterations Number of digest hash iterations.
+	 * @param salt Optional 8-byte salt.
+	 * @param password Password byte array.
+	 * @param md MessageDigest algorithm instance (MD5).
+	 * @return 2-element array containing `[keyBytes, ivBytes]`.
 	 */
 	@Suppress("SameParameterValue")
 	@Throws(Exception::class)

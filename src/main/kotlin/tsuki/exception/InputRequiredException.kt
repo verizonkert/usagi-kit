@@ -5,17 +5,17 @@ import tsuki.InternalParsersApi
 import tsuki.model.MangaSource
 
 /**
- * Input is required for access to the requested content
+ * Thrown when access to requested content requires user interactive input (such as entering a password,
+ * an invite code, or a personal access token).
  *
- * When the app catches this exception it must show a mandatory input dialog
- * displaying [message] and, after the user confirms, store the entered text
- * so that the parser can retrieve it on the next attempt.
+ * When the app catches this exception, it prompts the user with a dialog displaying [message].
+ * After the user confirms, the entered text is stored under [key] so that the parser can retrieve it
+ * on the subsequent attempt.
  *
- * @param source  The manga source that raised this exception.
- * @param message A human-readable prompt shown to the user inside the dialog.
- * @param key     An arbitrary identifier that the parser uses to look up the
- *                returned value (e.g. "password", "token").
- * @param cause   Optional underlying cause.
+ * @property source The [MangaSource] requesting user input.
+ * @property message A human-readable prompt displayed inside the input dialog.
+ * @property key Key identifier used by the parser to retrieve the stored input from configuration.
+ * @param cause Optional underlying cause.
  */
 public class InputRequiredException @InternalParsersApi @JvmOverloads constructor(
 	public val source: MangaSource,

@@ -15,6 +15,9 @@ import tsuki.util.parseHtml
 
 private val NEXT_F_REGEX = Regex("""self\.__next_f\.push\(\s*(\[.*])\s*\)\s*;?\s*$""", RegexOption.DOT_MATCHES_ALL)
 
+/**
+ * Recursively inspects a JSON tree ([JSONObject] or [JSONArray]) to find a node matching [predicate].
+ */
 private fun extractValueNextJs(
     payload: Any,
     predicate: (Any) -> Boolean,
@@ -46,6 +49,9 @@ private fun extractValueNextJs(
     return null
 }
 
+/**
+ * Extracts React Server Component (RSC) streamed payloads from Next.js App Router (`self.__next_f.push`) inline scripts.
+ */
 private fun Document.extractAppRouterPayloads(): List<Any> = select("script:not([src])")
     .map { it.data() }
     .filter { "self.__next_f.push" in it }
@@ -61,6 +67,9 @@ private fun Document.extractAppRouterPayloads(): List<Any> = select("script:not(
         }
     }
 
+/**
+ * Extracts serialized state from Next.js Pages Router (`<script id="__NEXT_DATA__">`) elements.
+ */
 private fun Document.extractPagesRouterPayloads(): List<Any> {
     val data = selectFirst("script#__NEXT_DATA__")?.data() ?: return emptyList()
     return try {
@@ -72,6 +81,9 @@ private fun Document.extractPagesRouterPayloads(): List<Any> {
     }
 }
 
+/**
+ * Parses React Server Component (RSC) chunked text format payloads into JSON objects or arrays.
+ */
 private fun extractRscPayloads(body: String): List<Any> {
     val results = mutableListOf<Any>()
     var pos = 0
@@ -122,6 +134,9 @@ private fun extractRscPayloads(body: String): List<Any> {
     return results
 }
 
+/**
+ * Parses a JSON string into either a [JSONObject] or [JSONArray].
+ */
 private fun parseJsonType(jsonStr: String): Any {
     val trimmed = jsonStr.trim()
     return when {
@@ -131,6 +146,9 @@ private fun parseJsonType(jsonStr: String): Any {
     }
 }
 
+/**
+ * Parses the first balanced JSON structure found starting at [start].
+ */
 private fun parseJsonAt(body: String, start: Int): Pair<Any?, Int> {
     if (start >= body.length) return Pair(null, start)
 
@@ -175,6 +193,13 @@ private fun parseJsonAt(body: String, start: Int): Pair<Any?, Int> {
     return Pair(null, i)
 }
 
+/**
+ * Searches and extracts Next.js state (from both App Router RSC chunks and Pages Router `__NEXT_DATA__`)
+ * that matches the given [predicate].
+ *
+ * @param predicate Matching rule applied to each JSON payload node.
+ * @return The first matched JSON node, or `null` if none found.
+ */
 public fun Document.extractNextJs(
     predicate: (Any) -> Boolean,
 ): Any? {
@@ -186,10 +211,16 @@ public fun Document.extractNextJs(
     return null
 }
 
+/**
+ * Searches and extracts typed Next.js data matching [predicate] from this HTML document.
+ */
 public inline fun <reified T : Any> Document.extractNextJsTyped(
     noinline predicate: (Any) -> Boolean,
 ): T? = extractNextJs(predicate) as? T
 
+/**
+ * Parses raw Next.js React Server Component (RSC) chunk responses and extracts data matching [predicate].
+ */
 public fun String.extractNextJsRsc(
     predicate: (Any) -> Boolean,
 ): Any? {
@@ -200,21 +231,34 @@ public fun String.extractNextJsRsc(
     return null
 }
 
+/**
+ * Parses raw Next.js React Server Component (RSC) chunk responses and extracts typed data of type [T].
+ */
 public inline fun <reified T : Any> String.extractNextJsRscTyped(
     noinline predicate: (Any) -> Boolean,
 ): T? = extractNextJsRsc(predicate) as? T
 
+/**
+ * Extracts Next.js data from an OkHttp [Response], automatically differentiating between
+ * HTML pages (`text/html`) and RSC chunks (`text/x-component`).
+ *
+ * @param predicate Matching rule for finding the desired JSON node.
+ * @return Matched JSON object or array, or `null`.
+ */
 public fun Response.extractNextJs(
     predicate: (Any) -> Boolean,
-): Any? {
-    val contentType = header("Content-Type") ?: ""
+): Any? = use { response ->
+    val contentType = response.header("Content-Type") ?: ""
     return when {
-        "text/x-component" in contentType -> body.string().extractNextJsRsc(predicate)
-        "text/html" in contentType -> parseHtml().extractNextJs(predicate)
+        "text/x-component" in contentType -> response.body.string().extractNextJsRsc(predicate)
+        "text/html" in contentType -> response.parseHtml().extractNextJs(predicate)
         else -> error("Unsupported Content-Type for Next.js extraction: $contentType")
     }
 }
 
+/**
+ * Extracts typed Next.js data of type [T] from an OkHttp [Response].
+ */
 public inline fun <reified T : Any> Response.extractNextJsTyped(
     noinline predicate: (Any) -> Boolean,
 ): T? = extractNextJs(predicate) as? T

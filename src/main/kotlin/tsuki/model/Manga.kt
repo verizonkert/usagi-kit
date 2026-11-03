@@ -4,138 +4,65 @@ import androidx.collection.ArrayMap
 import tsuki.util.findById
 import tsuki.util.nullIfEmpty
 
+/**
+ * Core domain model representing a manga, manhwa, manhua, novel, or comic entity.
+ *
+ * Encapsulates core metadata, author information, content ratings, cover links,
+ * tags/genres, publication status, and optional chapter lists.
+ *
+ * @property id Unique numeric identifier assigned to this manga.
+ * @property title Primary human-readable title of the manga.
+ * @property altTitles Set of alternative titles (e.g. localized names, romanizations), or empty.
+ * @property url Relative URL or path identifier (without domain), used by parsers.
+ * @property publicUrl Absolute public webpage URL ready to open in an external browser.
+ * @property rating Normalized rating in the range `0.0..1.0`, or [RATING_UNKNOWN] if unrated.
+ * @property contentRating Content maturity rating ([ContentRating.SAFE], [ContentRating.SUGGESTIVE], or [ContentRating.ADULT]), or `null`.
+ * @property coverUrl Absolute URL pointing to the primary cover image thumbnail.
+ * @property tags Set of genre/theme tags associated with this manga.
+ * @property state Publication state ([MangaState.ONGOING], [MangaState.FINISHED], etc.), or `null`.
+ * @property authors Set of author and artist names.
+ * @property largeCoverUrl Absolute URL pointing to a high-resolution cover image, or `null`.
+ * @property description Full textual summary or synopsis (may contain HTML markup), or `null`.
+ * @property chapters Optional list of parsed [MangaChapter] instances, or `null` if not yet loaded.
+ * @property source The [MangaSource] from which this manga was parsed.
+ */
 public data class Manga(
-	/**
-	 * Unique identifier for manga
-	 */
 	@JvmField public val id: Long,
-	/**
-	 * Manga title, human-readable
-	 */
 	@JvmField public val title: String,
-	/**
-	 * Alternative titles (for example on other language), may be empty
-	 */
 	@JvmField public val altTitles: Set<String>,
-	/**
-	 * Relative url to manga (**without** a domain) or any other uri.
-	 * Used principally in parsers
-	 */
 	@JvmField public val url: String,
-	/**
-	 * Absolute url to manga, must be ready to open in browser
-	 */
 	@JvmField public val publicUrl: String,
-	/**
-	 * Normalized manga rating, must be in range of 0..1 or [RATING_UNKNOWN] if rating s unknown
-	 * @see hasRating
-	 */
 	@JvmField public val rating: Float,
-	/**
-	 * Indicates that manga may contain sensitive information (18+, NSFW)
-	 */
 	@JvmField public val contentRating: ContentRating?,
-	/**
-	 * Absolute link to the cover
-	 * @see largeCoverUrl
-	 */
 	@JvmField public val coverUrl: String?,
-	/**
-	 * Tags (genres) of the manga
-	 */
 	@JvmField public val tags: Set<MangaTag>,
-	/**
-	 * Manga status (ongoing, finished) or null if unknown
-	 */
 	@JvmField public val state: MangaState?,
-	/**
-	 * Authors of the manga
-	 */
 	@JvmField public val authors: Set<String>,
-	/**
-	 * Large cover url (absolute), null if is no large cover
-	 * @see coverUrl
-	 */
 	@JvmField public val largeCoverUrl: String? = null,
-	/**
-	 * Manga description, may be html or null
-	 */
 	@JvmField public val description: String? = null,
-	/**
-	 * List of chapters
-	 */
 	@JvmField public val chapters: List<MangaChapter>? = null,
-	/**
-	 * Manga source
-	 */
 	@JvmField public val source: MangaSource,
 ) {
 
-	@Deprecated("Use other constructor")
+	/**
+	 * Legacy constructor accepting single author and single altTitle strings.
+	 */
+	@Deprecated("Use primary constructor with Set<String> authors and altTitles instead")
 	public constructor(
-		/**
-		 * Unique identifier for manga
-		 */
 		id: Long,
-		/**
-		 * Manga title, human-readable
-		 */
 		title: String,
-		/**
-		 * Alternative title (for example on other language), may be null
-		 */
 		altTitle: String?,
-		/**
-		 * Relative url to manga (**without** a domain) or any other uri.
-		 * Used principally in parsers
-		 */
 		url: String,
-		/**
-		 * Absolute url to manga, must be ready to open in browser
-		 */
 		publicUrl: String,
-		/**
-		 * Normalized manga rating, must be in range of 0..1 or [RATING_UNKNOWN] if rating s unknown
-		 * @see hasRating
-		 */
 		rating: Float,
-		/**
-		 * Indicates that manga may contain sensitive information (18+, NSFW)
-		 */
 		isNsfw: Boolean,
-		/**
-		 * Absolute link to the cover
-		 * @see largeCoverUrl
-		 */
 		coverUrl: String?,
-		/**
-		 * Tags (genres) of the manga
-		 */
 		tags: Set<MangaTag>,
-		/**
-		 * Manga status (ongoing, finished) or null if unknown
-		 */
 		state: MangaState?,
-		/**
-		 * Authors of the manga
-		 */
 		author: String?,
-		/**
-		 * Large cover url (absolute), null if is no large cover
-		 * @see coverUrl
-		 */
 		largeCoverUrl: String? = null,
-		/**
-		 * Manga description, may be html or null
-		 */
 		description: String? = null,
-		/**
-		 * List of chapters
-		 */
 		chapters: List<MangaChapter>? = null,
-		/**
-		 * Manga source
-		 */
 		source: MangaSource,
 	) : this(
 		id = id,
@@ -156,39 +83,53 @@ public data class Manga(
 	)
 
 	/**
-	 * Author of the manga, may be null
+	 * Primary author of the manga, resolved to the first entry of [authors].
 	 */
-	@Deprecated("Please use authors")
+	@Deprecated("Please use authors", ReplaceWith("authors.firstOrNull()"))
 	public val author: String?
 		get() = authors.firstOrNull()
 
 	/**
-	 * Alternative title (for example on other language), may be null
+	 * Primary alternative title of the manga, resolved to the first entry of [altTitles].
 	 */
-	@Deprecated("Please use altTitles")
+	@Deprecated("Please use altTitles", ReplaceWith("altTitles.firstOrNull()"))
 	public val altTitle: String?
 		get() = altTitles.firstOrNull()
 
 	/**
-	 * Return if manga has a specified rating
-	 * @see rating
+	 * Returns `true` if this manga has a valid positive score between `0.0` and `1.0`.
 	 */
 	public val hasRating: Boolean
 		get() = rating > 0f && rating <= 1f
 
+	/**
+	 * Indicates whether this manga is marked as adult/NSFW content.
+	 */
 	@Deprecated("Use contentRating instead", ReplaceWith("contentRating == ContentRating.ADULT"))
 	public val isNsfw: Boolean
 		get() = contentRating == ContentRating.ADULT
 
+	/**
+	 * Returns all chapters that belong to the specified release [branch], or all chapters if [branch] is `null`.
+	 */
 	public fun getChapters(branch: String?): List<MangaChapter> {
 		return chapters?.filter { x -> x.branch == branch }.orEmpty()
 	}
 
+	/**
+	 * Finds a chapter by its unique [id], or returns `null` if not found.
+	 */
 	public fun findChapterById(id: Long): MangaChapter? = chapters?.findById(id)
 
+	/**
+	 * Finds a chapter by its unique [id], or throws [NoSuchElementException] if not found.
+	 */
 	public fun requireChapterById(id: Long): MangaChapter = findChapterById(id)
 		?: throw NoSuchElementException("Chapter with id $id not found")
 
+	/**
+	 * Computes a frequency map of release branch names to their respective chapter count.
+	 */
 	public fun getBranches(): Map<String?, Int> {
 		if (chapters.isNullOrEmpty()) {
 			return emptyMap()
@@ -201,3 +142,4 @@ public data class Manga(
 		return result
 	}
 }
+

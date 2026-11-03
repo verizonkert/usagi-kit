@@ -5,11 +5,11 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-group = "com.draken"
-version = "1.0.6"
+group = "com.github.verizonkert"
+version = System.getenv("LIB_VERSION") ?: "0.0.1"
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(17)
 }
 
 tasks.jar {
@@ -30,29 +30,10 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
     }
 }
 
-tasks.matching {
-    it.name in setOf("compileTestKotlin", "compileTestJava", "processTestResources", "testClasses", "test")
-}.configureEach {
-    enabled = false
+tasks.test {
+    useJUnitPlatform()
 }
 
-publishing {
-	publications {
-		create<MavenPublication>("maven") {
-			from(components["java"])
-		}
-	}
-	repositories {
-		maven {
-			name = "GitHubPackages"
-			url = uri("https://maven.pkg.github.com/UsagiApp/Tsuki")
-			credentials {
-				username = System.getenv("GITHUB_ACTOR") ?: ""
-				password = System.getenv("GITHUB_TOKEN") ?: ""
-			}
-		}
-	}
-}
 
 dependencies {
 	implementation(libs.androidx.collection)

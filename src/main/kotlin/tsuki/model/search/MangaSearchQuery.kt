@@ -7,15 +7,19 @@ import androidx.collection.ArraySet
 import tsuki.model.SortOrder
 
 /**
- * Represents a search query for filtering and sorting manga search results.
- * This class is immutable and must be constructed using the [Builder].
+ * Legacy search query container for filtering and sorting manga search results.
+ *
+ * This class is immutable and must be constructed using [Builder].
  *
  * @property criteria The set of search criteria applied to the query.
- * @property order The sorting order for the results (optional).
- * @property offset The offset number for paginated search results (optional).
+ * @property order The sorting order for the results, or `null` to use default order.
+ * @property offset The item pagination offset index.
+ * @property skipValidation Whether to bypass capability checks when processing this query.
  */
-
-@Deprecated("Too complex. Use MangaListFilter instead")
+@Deprecated(
+	message = "MangaSearchQuery is deprecated in favor of MangaListFilter.",
+	replaceWith = ReplaceWith("MangaListFilter", "tsuki.model.MangaListFilter"),
+)
 @ConsistentCopyVisibility
 public data class MangaSearchQuery private constructor(
 	@JvmField public val criteria: Set<QueryCriteria<*>>,
@@ -24,8 +28,14 @@ public data class MangaSearchQuery private constructor(
 	@JvmField public val skipValidation: Boolean,
 ) {
 
+	/**
+	 * Creates a new [Builder] pre-populated with criteria and values from this query.
+	 */
 	public fun newBuilder(): Builder = Builder(this)
 
+	/**
+	 * Builder for constructing immutable [MangaSearchQuery] instances.
+	 */
 	public class Builder {
 
 		private val criteria = ArraySet<QueryCriteria<*>>()
@@ -33,22 +43,45 @@ public data class MangaSearchQuery private constructor(
 		private var offset: Int = 0
 		private var skipValidation: Boolean = false
 
+		/**
+		 * Creates an empty builder.
+		 */
 		public constructor()
 
+		/**
+		 * Creates a builder initialized with values from an existing [query].
+		 */
 		public constructor(query: MangaSearchQuery) : this() {
 			criteria.addAll(query.criteria)
 			order = query.order
 			offset = query.offset
 		}
 
+		/**
+		 * Adds a search [criterion] to the query.
+		 */
 		public fun criterion(criterion: QueryCriteria<*>): Builder = apply { criteria.add(criterion) }
 
+		/**
+		 * Sets the desired sort [order].
+		 */
 		public fun order(order: SortOrder?): Builder = apply { this.order = order }
 
+		/**
+		 * Sets the pagination [offset].
+		 */
 		public fun offset(offset: Int): Builder = apply { this.offset = offset }
 
+		/**
+		 * Configures whether parser capability validation should be skipped.
+		 */
 		public fun skipValidation(skip: Boolean): Builder = apply { this.skipValidation = skip }
 
+		/**
+		 * Deduplicates combined criteria and builds the immutable [MangaSearchQuery].
+		 *
+		 * @throws IllegalArgumentException If duplicate contradictory match or range criteria exist for the same field.
+		 */
 		@Throws(IllegalArgumentException::class)
 		public fun build(): MangaSearchQuery {
 			return MangaSearchQuery(deduplicateCriteria(criteria), order, offset, skipValidation)

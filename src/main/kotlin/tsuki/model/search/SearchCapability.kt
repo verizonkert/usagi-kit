@@ -5,25 +5,21 @@ package tsuki.model.search
 import kotlin.reflect.KClass
 
 /**
- * Defines the search capabilities of a given field in the manga search query.
+ * Declares parser search and filter capabilities for a specific [field].
  *
- * @property field The searchable field that this capability applies to.
- * 		Example values:
- * 		- `SearchableField.TITLE_NAME` for searching by title.
- * 		- `SearchableField.AUTHOR` for searching by author names.
- * 		- `SearchableField.TAG` for filtering by tags.
- * @property criteriaTypes The set of supported criteria types for the field.
- *      Example values:
- *      - `setOf(Include::class, Exclude::class)` selected field supports inclusion/exclusion criteria.
- *      - `setOf(Range::class)` selected field support numerical range criteria.
- * @property isMultiValue Indicates whether the field supports multiple values.
- *      - `true` if multiple values can be provided (e.g., multiple tags or authors).
- *      - `false` if only a single value is allowed (e.g., only one tag or author).
- * @property isExclusive Specifies whether the field can be used alongside other criteria.
- *      - `true` if this field can be used with other search criteria.
- *      - `false` if using this field requires it to be the only criterion in query.
+ * Defines which criterion types are accepted (such as inclusion, exclusion, or numerical ranges),
+ * whether multiple values can be queried simultaneously, and whether querying this field
+ * requires exclusive execution.
+ *
+ * @property field The [SearchableField] that this capability definition applies to.
+ * @property criteriaTypes The set of supported [QueryCriteria] classes for this field (e.g. `setOf(Include::class, Exclude::class)`).
+ * @property isMultiple Indicates whether multiple values can be provided for this field (e.g. multiple genre tags).
+ * @property isExclusive Indicates whether this field cannot be combined with other search fields in the same query.
  */
-@Deprecated("Too complex")
+@Deprecated(
+	message = "SearchCapability is deprecated in favor of MangaListFilterCapabilities.",
+	replaceWith = ReplaceWith("MangaListFilterCapabilities", "tsuki.model.MangaListFilterCapabilities"),
+)
 public data class SearchCapability(
 	/** The searchable field that this capability applies to. */
 	@JvmField public val field: SearchableField,
@@ -34,3 +30,4 @@ public data class SearchCapability(
 	/** Specifies whether the field can be used alongside other criteria. */
 	@JvmField public val isExclusive: Boolean = false,
 )
+

@@ -4,13 +4,25 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
+/**
+ * Standard thread-safe, coroutine-safe implementation of [SuspendLazy].
+ *
+ * Employs double-checked locking using a coroutine [Mutex]. Once initialized,
+ * the [initializer] reference is released to avoid holding memory references.
+ *
+ * @param coroutineContext Optional context to run the initializer in.
+ * @param initializer The suspending computation lambda.
+ */
 public class SuspendLazyImpl<T>(
 	private val coroutineContext: CoroutineContext,
-	private val initializer: SuspendLazyInitializer<T>,
+	initializer: SuspendLazyInitializer<T>,
 ) : SuspendLazy<T> {
 
 	private val mutex: Mutex = Mutex()
+	private var initializer: SuspendLazyInitializer<T>? = initializer
+	@Volatile
 	private var cachedValue: Any? = Uninitialized
 
 	override val isInitialized: Boolean
@@ -19,21 +31,25 @@ public class SuspendLazyImpl<T>(
 	@Suppress("UNCHECKED_CAST")
 	override suspend fun get(): T {
 		// fast way
-		cachedValue.let {
-			if (it !== Uninitialized) {
-				return it as T
-			}
+		val current = cachedValue
+		if (current !== Uninitialized) {
+			return current as T
 		}
 		return mutex.withLock {
-			cachedValue.let {
-				if (it !== Uninitialized) {
-					return it as T
+			val lockCurrent = cachedValue
+			if (lockCurrent !== Uninitialized) {
+				return lockCurrent as T
+			}
+			val init = initializer ?: error("Initializer has already been cleared")
+			val result = if (coroutineContext === EmptyCoroutineContext) {
+				init()
+			} else {
+				withContext(coroutineContext) {
+					init()
 				}
 			}
-			val result = withContext(coroutineContext) {
-				initializer()
-			}
 			cachedValue = result
+			initializer = null // Prevent retaining captured outer references
 			result
 		}
 	}
@@ -43,5 +59,8 @@ public class SuspendLazyImpl<T>(
 		return cachedValue?.takeUnless { it === Uninitialized } as T?
 	}
 
+	/**
+	 * Sentinel token denoting that the lazy value has not yet been computed.
+	 */
 	private object Uninitialized
 }

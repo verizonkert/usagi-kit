@@ -3,13 +3,18 @@
 package tsuki.model.search
 
 /**
- * Represents a generic search criterion used for filtering manga search results.
- * Each criterion applies a specific condition to a [SearchableField] and operates on values of type [T].
+ * Represents a search criterion used for filtering manga search results in legacy [MangaSearchQuery].
  *
- * @param T The type of value associated with the search criterion.
- * @property field The field to which this search criterion applies.
+ * Each criterion applies a specific matching, range, inclusion, or exclusion condition
+ * to a [SearchableField] and operates on values of type [T].
+ *
+ * @param T The type of value associated with this search criterion.
+ * @property field The [SearchableField] to which this search criterion applies.
  */
-@Deprecated("Too complex")
+@Deprecated(
+	message = "QueryCriteria is deprecated in favor of MangaListFilter.",
+	replaceWith = ReplaceWith("MangaListFilter", "tsuki.model.MangaListFilter"),
+)
 public sealed interface QueryCriteria<T> {
 
 	public val field: SearchableField
@@ -19,14 +24,18 @@ public sealed interface QueryCriteria<T> {
 	override fun hashCode(): Int
 
 	/**
-	 * Represents an inclusion criterion that allows search results based on a set of allowed values.
+	 * Represents an inclusion criterion that filters search results to items matching any of the allowed [values].
 	 *
 	 * @param T The type of value being included in the search.
-	 * @property values The set of values that should be included in the search results.
+	 * @property field The [SearchableField] to which this criterion applies.
+	 * @property values The set of values that must be matched in the search results.
 	 *
-	 * ### Example Usage:
+	 * ### Example:
 	 * ```kotlin
-	 * val genreFilter = QueryCriteria.Include(SearchableField.STATE, setOf(MangaState.ONGOING, MangaState.FINISHED))
+	 * val stateFilter = QueryCriteria.Include(
+	 *     field = SearchableField.STATE,
+	 *     values = setOf(MangaState.ONGOING, MangaState.FINISHED),
+	 * )
 	 * ```
 	 */
 	public data class Include<T : Any>(
@@ -40,14 +49,18 @@ public sealed interface QueryCriteria<T> {
 	}
 
 	/**
-	 * Represents an exclusion criterion that exclude results containing certain values.
+	 * Represents an exclusion criterion that filters out search results containing any of the specified [values].
 	 *
 	 * @param T The type of value being excluded from the search.
-	 * @property values The set of values that should be excluded from the search results.
+	 * @property field The [SearchableField] to which this criterion applies.
+	 * @property values The set of values that must be excluded from the search results.
 	 *
-	 * ### Example Usage:
+	 * ### Example:
 	 * ```kotlin
-	 * val excludeTag = QueryCriteria.Exclude(SearchableField.TAG, setOf(MangaTag(key, title, source)))
+	 * val excludeTag = QueryCriteria.Exclude(
+	 *     field = SearchableField.TAG,
+	 *     values = setOf(MangaTag(key = "horror", title = "Horror", source = source)),
+	 * )
 	 * ```
 	 */
 	public data class Exclude<T : Any>(
@@ -61,15 +74,20 @@ public sealed interface QueryCriteria<T> {
 	}
 
 	/**
-	 * Represents a range criterion that allows search based on a range of values.
+	 * Represents a range criterion that filters search results within a bounded interval [[from], [to]].
 	 *
-	 * @param T The type of value used in the range (must be comparable).
+	 * @param T The comparable type of value defining the range boundaries.
+	 * @property field The [SearchableField] to which this criterion applies.
 	 * @property from The starting value of the range (inclusive).
 	 * @property to The ending value of the range (inclusive).
 	 *
-	 * ### Example Usage:
+	 * ### Example:
 	 * ```kotlin
-	 * val yearRange = QueryCriteria.Range(SearchableField.PUBLICATION_YEAR, 2000, 2020)
+	 * val yearRange = QueryCriteria.Range(
+	 *     field = SearchableField.PUBLICATION_YEAR,
+	 *     from = 2000,
+	 *     to = 2024,
+	 * )
 	 * ```
 	 */
 	public data class Range<T : Comparable<T>>(
@@ -84,16 +102,19 @@ public sealed interface QueryCriteria<T> {
 		}
 	}
 
-
 	/**
-	 * Represents a match criterion that search results based on an exact match of a value.
+	 * Represents an exact match criterion that filters search results matching the specific [value].
 	 *
 	 * @param T The type of value being matched.
-	 * @property value The exact value that must be matched.
+	 * @property field The [SearchableField] to which this criterion applies.
+	 * @property value The exact target value that must be matched.
 	 *
-	 * ### Example Usage:
+	 * ### Example:
 	 * ```kotlin
-	 * val titleMatch = QueryCriteria.Match(SearchableField.TITLE, "manga title")
+	 * val titleMatch = QueryCriteria.Match(
+	 *     field = SearchableField.TITLE_NAME,
+	 *     value = "One Piece",
+	 * )
 	 * ```
 	 */
 	public data class Match<T : Any>(

@@ -1,6 +1,5 @@
 package tsuki
 
-import com.koushikdutta.quack.QuackContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -14,6 +13,7 @@ import tsuki.util.await
 import tsuki.util.requireBody
 import org.koitharu.kotatsu.test_util.BitmapTestImpl
 import java.awt.image.BufferedImage
+import java.io.InputStream
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
@@ -40,13 +40,19 @@ internal object MangaLoaderContextMock : MangaLoaderContext() {
 		loadTestCookies()
 	}
 
+	override fun newParserInstance(source: MangaSource): MangaParser {
+		return MockMangaParser(this, source)
+	}
+
+	override fun getParserSources(): List<MangaSource> {
+		return TestMangaSource.entries.toList()
+	}
+
 	@Deprecated("Provide a base url")
 	override suspend fun evaluateJs(script: String): String? = evaluateJs("", script)
 
 	override suspend fun evaluateJs(baseUrl: String, script: String): String? {
-		return QuackContext.create().use {
-			it.evaluate(script)?.toString()
-		}
+		return script
 	}
 
 	override fun getConfig(source: MangaSource): MangaSourceConfig {
@@ -79,19 +85,16 @@ internal object MangaLoaderContextMock : MangaLoaderContext() {
 	}
 
 	private fun loadTestCookies() {
-		// https://addons.mozilla.org/ru/firefox/addon/cookies-txt/
 		javaClass.getResourceAsStream("/cookies.txt")?.use {
 			cookieJar.loadFromStream(it)
-		} ?: println("No cookies loaded!")
+		}
 	}
 
 	private fun OkHttpClient.Builder.permissiveSSL() = also { builder ->
 		runCatching {
 			val trustAllCerts = object : X509TrustManager {
 				override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) = Unit
-
 				override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) = Unit
-
 				override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
 			}
 			val sslContext = SSLContext.getInstance("SSL")
@@ -103,5 +106,4 @@ internal object MangaLoaderContextMock : MangaLoaderContext() {
 			it.printStackTrace()
 		}
 	}
-
 }

@@ -14,4 +14,4 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Tsuki"
+rootProject.name = "usagi-kit"

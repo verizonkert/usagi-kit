@@ -1,8 +1,14 @@
 package tsuki.network
 
-import okhttp3.*
+import okhttp3.FormBody
+import okhttp3.Headers
+import okhttp3.HttpUrl
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import org.json.JSONObject
 import org.jsoup.HttpStatusException
 import tsuki.exception.AuthRequiredException
@@ -13,10 +19,27 @@ import tsuki.util.await
 import tsuki.util.parseJson
 import java.net.HttpURLConnection
 
+/**
+ * Default [WebClient] implementation powered by [OkHttpClient].
+ *
+ * Automatically:
+ * - Tags all requests with the active [MangaSource] for traceability and authentication error mapping.
+ * - Bridges synchronous OkHttp [okhttp3.Call] execution to Kotlin coroutines via suspending [await].
+ * - Validates HTTP response status codes and converts them into Tsuki exception types
+ *   ([NotFoundException], [AuthRequiredException], or [HttpStatusException]).
+ *
+ * @param httpClient The shared [OkHttpClient] instance.
+ * @param mangaSource The [MangaSource] descriptor associated with this client.
+ */
 public class OkHttpWebClient(
 	private val httpClient: OkHttpClient,
 	private val mangaSource: MangaSource,
 ) : WebClient {
+
+	public companion object {
+		private val JSON_MEDIA_TYPE: MediaType = "application/json; charset=utf-8".toMediaType()
+		private val FORM_MEDIA_TYPE: MediaType = "application/x-www-form-urlencoded; charset=utf-8".toMediaType()
+	}
 
 	override suspend fun httpGet(url: HttpUrl, extraHeaders: Headers?): Response {
 		val request = Request.Builder()
@@ -38,7 +61,7 @@ public class OkHttpWebClient(
 	override suspend fun httpPost(url: HttpUrl, form: Map<String, String>, extraHeaders: Headers?): Response {
 		val body = FormBody.Builder()
 		form.forEach { (k, v) ->
-			body.addEncoded(k, v)
+			body.add(k, v)
 		}
 		val request = Request.Builder()
 			.post(body.build())
@@ -49,17 +72,9 @@ public class OkHttpWebClient(
 	}
 
 	override suspend fun httpPost(url: HttpUrl, payload: String, extraHeaders: Headers?): Response {
-		val body = FormBody.Builder()
-		payload.split('&').forEach {
-			val pos = it.indexOf('=')
-			if (pos != -1) {
-				val k = it.substring(0, pos)
-				val v = it.substring(pos + 1)
-				body.addEncoded(k, v)
-			}
-		}
+		val requestBody = payload.toRequestBody(FORM_MEDIA_TYPE)
 		val request = Request.Builder()
-			.post(body.build())
+			.post(requestBody)
 			.url(url)
 			.addTags()
 			.addExtraHeaders(extraHeaders)
@@ -67,8 +82,7 @@ public class OkHttpWebClient(
 	}
 
 	override suspend fun httpPost(url: HttpUrl, body: JSONObject, extraHeaders: Headers?): Response {
-		val mediaType = "application/json; charset=utf-8".toMediaType()
-		val requestBody = body.toString().toRequestBody(mediaType)
+		val requestBody = body.toString().toRequestBody(JSON_MEDIA_TYPE)
 		val request = Request.Builder()
 			.post(requestBody)
 			.url(url)
@@ -83,13 +97,13 @@ public class OkHttpWebClient(
 		body.put("variables", JSONObject())
 		body.put("query", "{$query}")
 
-		val mediaType = "application/json; charset=utf-8".toMediaType()
-		val requestBody = body.toString().toRequestBody(mediaType)
+		val requestBody = body.toString().toRequestBody(JSON_MEDIA_TYPE)
 		val request = Request.Builder()
 			.post(requestBody)
 			.url(endpoint)
 			.addTags()
-		val json = httpClient.newCall(request.build()).await().parseJson()
+		val response = httpClient.newCall(request.build()).await().ensureSuccess()
+		val json = response.parseJson()
 		json.optJSONArray("errors")?.let {
 			if (it.length() != 0) {
 				throw GraphQLException(it)
@@ -105,7 +119,9 @@ public class OkHttpWebClient(
 
 	private fun Request.Builder.addExtraHeaders(headers: Headers?): Request.Builder {
 		if (headers != null) {
-			headers(headers)
+			for (i in 0 until headers.size) {
+				addHeader(headers.name(i), headers.value(i))
+			}
 		}
 		return this
 	}

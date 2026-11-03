@@ -7,7 +7,6 @@ import tsuki.model.ContentRating
 import tsuki.model.ContentType.MANGA
 import tsuki.model.ContentType.MANHUA
 import tsuki.model.Demographic.SEINEN
-import tsuki.model.MangaParserSource
 import tsuki.model.MangaState
 import tsuki.model.MangaTag
 import tsuki.model.search.MangaSearchQuery
@@ -88,7 +87,7 @@ class ConvertToMangaListFilterTest {
         return MangaTag(
             key = "${name}Key",
             title = name,
-            source = MangaParserSource.MANGADEX,
+            source = tsuki.TestMangaSource.MANGADEX,
         )
     }
 }

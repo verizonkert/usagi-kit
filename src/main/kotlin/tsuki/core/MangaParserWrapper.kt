@@ -2,66 +2,42 @@
 
 package tsuki.core
 
-import okhttp3.Headers
-import okhttp3.HttpUrl
-import okhttp3.Interceptor
-import okhttp3.Response
 import tsuki.MangaParser
 import tsuki.MangaParserAuthProvider
-import tsuki.config.ConfigKey
-import tsuki.config.MangaSourceConfig
-import tsuki.model.*
-import tsuki.model.search.MangaSearchQuery
-import tsuki.model.search.MangaSearchQueryCapabilities
-import tsuki.util.LinkResolver
 
-public class MangaParserWrapper(
-	private val delegate: MangaParser,
-) : MangaParser, MangaParserAuthProvider by (delegate.authorizationProvider ?: EmptyAuthProvider) {
+/**
+ * Decorator base class that wraps a [delegate] [MangaParser] and forwards all operations to it.
+ *
+ * Can be subclassed to intercept, transform, or enrich parser calls (such as adding caching or logging).
+ *
+ * @param delegate The underlying [MangaParser] being decorated.
+ */
+public open class MangaParserWrapper(
+	public val delegate: MangaParser,
+) : MangaParser by delegate, MangaParserAuthProvider by (delegate.authorizationProvider ?: EmptyAuthProvider) {
 
-	override val source: MangaSource get() = delegate.source
+	/**
+	 * Accurately reflects whether the underlying [delegate] supports authentication.
+	 * Prevents returning a dummy provider when the delegate does not support login.
+	 */
+	override val authorizationProvider: MangaParserAuthProvider?
+		get() = delegate.authorizationProvider
 
-	override val availableSortOrders: Set<SortOrder> get() = delegate.availableSortOrders
+	/**
+	 * Recursively unwraps this wrapper to find the innermost [MangaParser] instance.
+	 */
+	public fun unwrap(): MangaParser {
+		var current: MangaParser = delegate
+		while (current is MangaParserWrapper) {
+			current = current.delegate
+		}
+		return current
+	}
 
-	@Deprecated("Too complex. Use filterCapabilities instead")
-	override val searchQueryCapabilities: MangaSearchQueryCapabilities get() = delegate.searchQueryCapabilities
-
-	override val filterCapabilities: MangaListFilterCapabilities get() = delegate.filterCapabilities
-
-	override val config: MangaSourceConfig get() = delegate.config
-
-	override val configKeyDomain: ConfigKey.Domain get() = delegate.configKeyDomain
-
-	override val domain: String get() = delegate.domain
-
-	@Deprecated("Too complex. Use getList with filter instead")
-	override suspend fun getList(query: MangaSearchQuery): List<Manga> = delegate.getList(query)
-
-	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> =
-		delegate.getList(offset, order, filter)
-
-	override suspend fun getDetails(manga: Manga): Manga = delegate.getDetails(manga)
-
-	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> = delegate.getPages(chapter)
-
-	override suspend fun getPageUrl(page: MangaPage): String = delegate.getPageUrl(page)
-
-	override suspend fun getFilterOptions(): MangaListFilterOptions = delegate.getFilterOptions()
-
-	override suspend fun getFavicons(): Favicons = delegate.getFavicons()
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>): Unit = delegate.onCreateConfig(keys)
-
-	override suspend fun getRelatedManga(seed: Manga): List<Manga> = delegate.getRelatedManga(seed)
-
-	override fun getRequestHeaders(): Headers = delegate.getRequestHeaders()
-
-	override suspend fun resolveLink(link: HttpUrl): Manga? = delegate.resolveLink(link)
-
-	@Deprecated("Use resolveLink(HttpUrl) instead")
-    override suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? = delegate.resolveLink(resolver, link)
-
-	override fun intercept(chain: Interceptor.Chain): Response = delegate.intercept(chain)
+	/**
+	 * Checks and casts this wrapper to a parser of type [T].
+	 */
+	public inline fun <reified T : MangaParser> unwrapAs(): T? = unwrap() as? T
 
 	private object EmptyAuthProvider : MangaParserAuthProvider {
 		override val authUrl: String = ""

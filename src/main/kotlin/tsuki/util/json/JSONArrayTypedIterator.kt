@@ -2,6 +2,14 @@ package tsuki.util.json
 
 import org.json.JSONArray
 
+/**
+ * A bi-directional, type-casting [ListIterator] over elements of a [JSONArray].
+ *
+ * @param T The expected target element type (e.g. [org.json.JSONObject], [String]).
+ * @param array The backing JSON array.
+ * @param typeClass The Java [Class] used to cast each element dynamically.
+ * @param startIndex The initial cursor position within the array.
+ */
 public class JSONArrayTypedIterator<T : Any>(
 	private val array: JSONArray,
 	private val typeClass: Class<T>,
@@ -9,7 +17,7 @@ public class JSONArrayTypedIterator<T : Any>(
 ) : ListIterator<T> {
 
 	private val total = array.length()
-	private var index = startIndex
+	private var index = startIndex.coerceIn(0, total)
 
 	override fun hasNext() = index < total
 

@@ -3,7 +3,7 @@ package tsuki.model.search
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
-import tsuki.model.MangaParserSource
+import tsuki.TestMangaSource
 import tsuki.model.MangaState
 import tsuki.model.MangaTag
 import tsuki.model.search.QueryCriteria.*
@@ -68,5 +68,5 @@ class MangaSearchQueryCapabilitiesTest {
         assertThrows(IllegalArgumentException::class.java) { capabilities.validate(query) }
     }
 
-    private fun buildTag(name: String) = MangaTag(title = name, key = "${name}Key", source = MangaParserSource.MANGADEX)
+    private fun buildTag(name: String) = MangaTag(title = name, key = "${name}Key", source = TestMangaSource.MANGADEX)
 }
