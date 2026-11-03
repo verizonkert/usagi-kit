@@ -1,0 +1,63 @@
+# Built artifacts & dependencies
+.gradle/
+build/
+bin/
+out/
+target/
+*.class
+
+# Kotlin
+.kotlin/
+kotlin-js-store/
+
+# General IDE & Editors
+# IntelliJ IDEA / Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+
+# Visual Studio Code
+.vscode/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Android & Local Configs
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+
+# Logs & temp files
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+
+# Test secrets & temporary data
+src/test/resources/cookies.txt
