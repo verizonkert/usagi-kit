@@ -46,10 +46,10 @@
           "name": "usagi-kit-main.jar",
           "url": "usagi-kit-main.jar",
           "size": 351637,
-          "sha512": "b518be3b7d300bd5bb2dc109691f53397fa97d6234e3d9940c42a825e15751fba52e16ff40613cdca900a12a56df9fba4534200541434e494d5e871f46e443d0",
-          "sha256": "9b5cee39783b6d0fb963f1557dbc7f17da0b3ba74ea791c61c98fe239416ce38",
-          "sha1": "5333d3471bff691a0ce6b3841c3e422f231125dc",
-          "md5": "f3380170d7ac1ac1f4660eef5ebe5cb3"
+          "sha512": "49edcb9e39991c6f3b3a88fc0731fe83e63e1846930011f83ba08cd3ab688e4321d426921df646d3356f13964051c8ddf4fecbe9f427ec22e3e59e32babb7901",
+          "sha256": "2a44791bd1c786d46ccf7ce886d97a27f07386774da25c56ef061b7ab1aa1c55",
+          "sha1": "57a06839dc92949910df7fb0dad8ee257f0505f5",
+          "md5": "fc29c7f35b1014325b2533daf5d6a231"
         }
       ]
     },
@@ -127,10 +127,10 @@
           "name": "usagi-kit-main.jar",
           "url": "usagi-kit-main.jar",
           "size": 351637,
-          "sha512": "b518be3b7d300bd5bb2dc109691f53397fa97d6234e3d9940c42a825e15751fba52e16ff40613cdca900a12a56df9fba4534200541434e494d5e871f46e443d0",
-          "sha256": "9b5cee39783b6d0fb963f1557dbc7f17da0b3ba74ea791c61c98fe239416ce38",
-          "sha1": "5333d3471bff691a0ce6b3841c3e422f231125dc",
-          "md5": "f3380170d7ac1ac1f4660eef5ebe5cb3"
+          "sha512": "49edcb9e39991c6f3b3a88fc0731fe83e63e1846930011f83ba08cd3ab688e4321d426921df646d3356f13964051c8ddf4fecbe9f427ec22e3e59e32babb7901",
+          "sha256": "2a44791bd1c786d46ccf7ce886d97a27f07386774da25c56ef061b7ab1aa1c55",
+          "sha1": "57a06839dc92949910df7fb0dad8ee257f0505f5",
+          "md5": "fc29c7f35b1014325b2533daf5d6a231"
         }
       ]
     }
