@@ -37,9 +37,13 @@ jobs:
       - name: Build and Publish Maven Artifacts to local repo
         run: |
           chmod +x gradlew
-          ./gradlew publishMavenPublicationToLocalRepoRepository
-        env:
-          LIB_VERSION: ${{ github.event.inputs.version || github.ref_name }}
+          RAW_VER="${{ github.event.inputs.version || (startsWith(github.ref, 'refs/tags/v') && github.ref_name) || '' }}"
+          VER="${RAW_VER#v}"
+          if [ -z "$VER" ] || [ "$VER" = "main" ]; then
+            VER="0.0.1"
+          fi
+          echo "Publishing version: $VER"
+          LIB_VERSION="$VER" ./gradlew publishMavenPublicationToLocalRepoRepository
 
       - name: Deploy to mvn-repo branch
         uses: peaceiris/actions-gh-pages@v4
